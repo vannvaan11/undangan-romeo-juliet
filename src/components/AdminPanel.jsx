@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { storage } from '../firebase';
 import CONFIG from '../config';
 
 const STORAGE_KEY = 'wedding_config_override';
@@ -70,6 +72,59 @@ const Field = ({ label, value, onChange, type = 'text', placeholder = '' }) => (
     )}
   </div>
 );
+
+// ── Helper: Upload field ──
+const UploadField = ({ label, value, onChange, accept = "image/*", placeholder = "" }) => {
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        const prog = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        setProgress(prog);
+      },
+      (error) => {
+        console.error("Upload error:", error);
+        alert("Upload gagal");
+        setUploading(false);
+      },
+      async () => {
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        onChange(downloadURL);
+        setUploading(false);
+        setProgress(0);
+      }
+    );
+  };
+
+  return (
+    <div style={{ marginBottom: '1rem' }}>
+      <label style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(253,253,253,0.5)', marginBottom: '0.35rem', letterSpacing: '1px' }}>{label}</label>
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <input
+          type="text"
+          value={value || ''}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder}
+          style={{ ...inputStyle, flex: 1, marginBottom: 0 }}
+        />
+        <label style={{ padding: '0.7rem 1.5rem', background: 'rgba(212,175,55,0.2)', border: '1px solid #D4AF37', borderRadius: '8px', color: '#D4AF37', fontSize: '0.75rem', cursor: 'pointer', fontFamily: "'Montserrat', sans-serif", transition: 'all 0.3s', whiteSpace: 'nowrap', display: 'inline-flex' }}>
+          {uploading ? `${progress}%` : 'Upload'}
+          <input type="file" accept={accept} onChange={handleFileChange} style={{ display: 'none' }} disabled={uploading} />
+        </label>
+      </div>
+    </div>
+  );
+};
 
 const inputStyle = {
   width: '100%', padding: '0.7rem 1rem',
@@ -147,7 +202,6 @@ const AdminPanel = ({ onClose }) => {
     { id: 'acara', label: '📅 Acara' },
     { id: 'galeri', label: '🖼️ Galeri' },
     { id: 'rekening', label: '💳 Rekening' },
-    { id: 'tema', label: '🎨 Tema' },
     { id: 'lainnya', label: '⚙️ Lainnya' },
   ];
 
@@ -215,14 +269,14 @@ const AdminPanel = ({ onClose }) => {
               <Field label="Nama Lengkap" value={config.groom.namaLengkap} onChange={v => update('groom.namaLengkap', v)} />
               <Field label="Nama Panggilan (akan ditampilkan besar)" value={config.groom.namaPanggilan} onChange={v => update('groom.namaPanggilan', v)} />
               <Field label="Orang Tua" value={config.groom.orangTua} onChange={v => update('groom.orangTua', v)} placeholder="Putra dari Bapak & Ibu ..." />
-              <Field label="URL Foto" value={config.groom.foto} onChange={v => update('groom.foto', v)} placeholder="https://..." />
+              <UploadField label="URL / File Foto" value={config.groom.foto} onChange={v => update('groom.foto', v)} placeholder="https://..." accept="image/*" />
               <Field label="Instagram" value={config.groom.instagram} onChange={v => update('groom.instagram', v)} />
             </Section>
             <Section title="MEMPELAI WANITA">
               <Field label="Nama Lengkap" value={config.bride.namaLengkap} onChange={v => update('bride.namaLengkap', v)} />
               <Field label="Nama Panggilan (akan ditampilkan besar)" value={config.bride.namaPanggilan} onChange={v => update('bride.namaPanggilan', v)} />
               <Field label="Orang Tua" value={config.bride.orangTua} onChange={v => update('bride.orangTua', v)} placeholder="Putri dari Bapak & Ibu ..." />
-              <Field label="URL Foto" value={config.bride.foto} onChange={v => update('bride.foto', v)} placeholder="https://..." />
+              <UploadField label="URL / File Foto" value={config.bride.foto} onChange={v => update('bride.foto', v)} placeholder="https://..." accept="image/*" />
               <Field label="Instagram" value={config.bride.instagram} onChange={v => update('bride.instagram', v)} />
             </Section>
           </>
@@ -272,11 +326,11 @@ const AdminPanel = ({ onClose }) => {
                     update('galeri', g);
                   }} style={{ background: 'rgba(255,80,80,0.15)', border: '1px solid rgba(255,80,80,0.3)', color: '#ff8080', padding: '0.25rem 0.75rem', borderRadius: '6px', fontSize: '0.7rem', cursor: 'pointer', fontFamily: "'Montserrat', sans-serif" }}>Hapus</button>
                 </div>
-                <Field label="URL Foto" value={foto.src} onChange={v => {
+                <UploadField label="URL / File Foto" value={foto.src} onChange={v => {
                   const g = [...config.galeri];
                   g[i] = { ...g[i], src: v };
                   update('galeri', g);
-                }} placeholder="https://..." />
+                }} placeholder="https://..." accept="image/*" />
                 <div style={{ marginBottom: '0.5rem' }}>
                   <label style={{ display: 'block', fontSize: '0.7rem', color: 'rgba(253,253,253,0.4)', marginBottom: '0.35rem' }}>Ukuran</label>
                   <select value={foto.span} onChange={e => {
@@ -320,79 +374,7 @@ const AdminPanel = ({ onClose }) => {
           </Section>
         )}
 
-        {/* ── TAB: TEMA ── */}
-        {activeTab === 'tema' && (
-          <>
-            <Section title="LAYOUT TEMA UTAMA">
-              <p style={{ fontSize: '0.75rem', color: 'rgba(253,253,253,0.4)', marginBottom: '1rem', lineHeight: '1.8' }}>
-                Pilih gaya desain undangan. Setiap layout memiliki susunan elemen dan bentuk yang sangat berbeda.
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                {[
-                  { id: 'cinematic', name: '🎬 Cinematic Arch', desc: 'Gelap, mewah, arch kaca' },
-                  { id: 'minimalist', name: '🍃 Minimalist Elegance', desc: 'Bersih, putih, kotak tajam' },
-                  { id: 'rustic', name: '🌿 Rustic Botanical', desc: 'Hangat, daun watercolor' },
-                  { id: 'editorial', name: '📸 Modern Editorial', desc: 'Vogue split-screen layout' },
-                  { id: 'royal', name: '👑 Classic Royal', desc: 'Simetris, bingkai klasik emas' }
-                ].map(l => (
-                  <div 
-                    key={l.id} 
-                    onClick={() => update('layout', l.id)}
-                    style={{ 
-                      padding: '1rem', 
-                      background: config.layout === l.id ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.03)', 
-                      border: config.layout === l.id ? '1px solid #D4AF37' : '1px solid rgba(255,255,255,0.1)', 
-                      borderRadius: '8px', 
-                      cursor: 'pointer',
-                      transition: 'all 0.3s'
-                    }}
-                  >
-                    <p style={{ margin: 0, fontWeight: 'bold', color: config.layout === l.id ? '#D4AF37' : '#fff', fontSize: '0.9rem' }}>{l.name}</p>
-                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.7rem', color: 'rgba(253,253,253,0.5)' }}>{l.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </Section>
 
-            <Section title="WARNA TEMA">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
-                <p style={{ fontSize: '0.75rem', color: 'rgba(253,253,253,0.4)', margin: 0, lineHeight: '1.8', flex: 1 }}>
-                  Sesuaikan warna dengan tema baju prewedding klien. Klik kotak warna atau ketik kode HEX.
-                </p>
-                <button
-                  onClick={() => {
-                    if (window.confirm('Kembalikan Layout dan Warna ke settingan bawaan tema ini?')) {
-                      setConfig(prev => ({
-                        ...prev,
-                        layout: CONFIG.layout,
-                        tema: { ...CONFIG.tema }
-                      }));
-                      setSaved(false);
-                    }
-                  }}
-                  style={{ background: 'rgba(212,175,55,0.15)', border: '1px solid rgba(212,175,55,0.4)', color: '#D4AF37', padding: '0.4rem 0.8rem', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.3s', fontFamily: "'Montserrat', sans-serif" }}
-                >
-                  ↺ Undo Tema
-                </button>
-              </div>
-              <Field label="Warna Utama (Latar Gelap)" value={config.tema.primary} onChange={v => update('tema.primary', v)} type="color" />
-              <Field label="Warna Utama Terang" value={config.tema.primaryLight} onChange={v => update('tema.primaryLight', v)} type="color" />
-              <Field label="Warna Sekunder (Champagne)" value={config.tema.secondary} onChange={v => update('tema.secondary', v)} type="color" />
-              <Field label="Warna Aksen (Emas/Gold)" value={config.tema.accent} onChange={v => update('tema.accent', v)} type="color" />
-              <Field label="Warna Teks Terang" value={config.tema.textLight} onChange={v => update('tema.textLight', v)} type="color" />
-              <Field label="Warna Teks Redup" value={config.tema.textMuted} onChange={v => update('tema.textMuted', v)} type="color" />
-              <Field label="Warna Latar Body" value={config.tema.bgBody} onChange={v => update('tema.bgBody', v)} type="color" />
-
-              {/* Preview */}
-              <div style={{ marginTop: '1.5rem', padding: '1.5rem', borderRadius: '12px', background: config.tema.primary, border: `1px solid ${config.tema.accent}30`, textAlign: 'center' }}>
-                <p style={{ fontFamily: "'Great Vibes', cursive", fontSize: '1.5rem', color: config.tema.accent }}>Preview Tema</p>
-                <h3 style={{ fontFamily: "'Cinzel', serif", color: config.tema.textLight, fontSize: '1.5rem', letterSpacing: '3px' }}>{config.groom.namaPanggilan} &amp; {config.bride.namaPanggilan}</h3>
-                <p style={{ color: config.tema.textMuted, fontSize: '0.8rem' }}>Teks biasa terlihat seperti ini</p>
-                <p style={{ color: config.tema.secondary, fontSize: '0.8rem' }}>Teks sekunder terlihat seperti ini</p>
-              </div>
-            </Section>
-          </>
-        )}
 
         {/* ── TAB: LAINNYA ── */}
         {activeTab === 'lainnya' && (
@@ -403,9 +385,9 @@ const AdminPanel = ({ onClose }) => {
               <Field label="Branding" value={config.penutup.branding} onChange={v => update('penutup.branding', v)} />
             </Section>
             <Section title="MUSIK LATAR">
-              <Field label="URL File Musik" value={config.musikUrl} onChange={v => update('musikUrl', v)} placeholder="/assets/music.mp3" />
+              <UploadField label="URL / File Musik" value={config.musikUrl} onChange={v => update('musikUrl', v)} placeholder="/assets/music.mp3" accept="audio/*" />
               <p style={{ fontSize: '0.7rem', color: 'rgba(253,253,253,0.35)', marginTop: '0.5rem', lineHeight: '1.7' }}>
-                💡 Taruh file .mp3 di folder <code style={{ color: '#D4AF37' }}>public/assets/</code> lalu tulis <code style={{ color: '#D4AF37' }}>/assets/namafile.mp3</code>
+                💡 Anda bisa mengupload file mp3, atau menaruh file di <code style={{ color: '#D4AF37' }}>public/assets/</code> lalu tulis <code style={{ color: '#D4AF37' }}>/assets/namafile.mp3</code>
               </p>
             </Section>
             <Section title="EKSPOR & IMPOR KONFIGURASI">

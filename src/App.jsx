@@ -3,12 +3,8 @@ import MusicPlayer from './components/MusicPlayer';
 import AdminPanel, { getConfig } from './components/AdminPanel';
 import './index.css';
 
-// Lazy load themes
+// Lazy load the only theme
 const CinematicTheme = React.lazy(() => import('./themes/cinematic/index.jsx'));
-const MinimalistTheme = React.lazy(() => import('./themes/minimalist/index.jsx'));
-const RusticTheme = React.lazy(() => import('./themes/rustic/index.jsx'));
-const EditorialTheme = React.lazy(() => import('./themes/editorial/index.jsx'));
-const RoyalTheme = React.lazy(() => import('./themes/royal/index.jsx'));
 
 function App() {
   const [isOpened, setIsOpened] = useState(false);
@@ -41,17 +37,6 @@ function App() {
     root.style.setProperty('--color-text-muted', config.tema.textMuted);
     document.body.style.backgroundColor = config.tema.bgBody;
   }, [config]);
-
-  // Reset isOpened when theme layout changes
-  const prevLayoutRef = useRef(config.layout);
-  useEffect(() => {
-    if (prevLayoutRef.current !== config.layout) {
-      prevLayoutRef.current = config.layout;
-      setIsOpened(false);
-      setIsPlaying(false);
-      document.body.style.overflowY = 'hidden';
-    }
-  }, [config.layout]);
 
   const cursorRef = useRef(null);
 
@@ -98,36 +83,18 @@ function App() {
     return <AdminPanel onClose={handleCloseAdmin} />;
   }
 
-  // Render Active Theme
-  const renderTheme = () => {
-    const props = { config, isOpened, onOpen: handleOpenInvitation };
-    
-    switch (config.layout) {
-      case 'cinematic':
-        return <CinematicTheme {...props} />;
-      case 'minimalist':
-        return <MinimalistTheme {...props} />;
-      case 'rustic':
-        return <RusticTheme {...props} />;
-      case 'editorial':
-        return <EditorialTheme {...props} />;
-      case 'royal':
-        return <RoyalTheme {...props} />;
-      default:
-        return <CinematicTheme {...props} />;
-    }
-  };
+  const props = { config, isOpened, onOpen: handleOpenInvitation };
 
   return (
     <>
       <div ref={cursorRef} className="custom-cursor"></div>
       <div style={{ width: '100%', minHeight: '100vh' }}>
         <Suspense fallback={<div style={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-accent)'}}>Memuat Undangan...</div>}>
-          {renderTheme()}
+          <CinematicTheme {...props} />
         </Suspense>
       </div>
 
-      <MusicPlayer isPlaying={isPlaying} togglePlay={togglePlay} url="/assets/music.mp3" />
+      <MusicPlayer isPlaying={isPlaying} togglePlay={togglePlay} url={config.musicUrl || "/assets/music.mp3"} />
 
       {/* ADMIN PANEL TOGGLE (Only visible if not opened yet) */}
       {!isOpened && (
