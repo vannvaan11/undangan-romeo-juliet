@@ -46,12 +46,12 @@ const RusticTheme = ({ config, isOpened, onOpen }) => {
 
       {/* Main content — visible after opened */}
       <div style={{
+        minHeight: '100vh',
+        paddingTop: isOpened ? '2rem' : '100vh',
         opacity: isOpened ? 1 : 0,
-        animation: isOpened ? 'fadeIn 1.2s 0.8s both' : 'none',
+        transition: 'opacity 0.8s ease 0.6s',
         pointerEvents: isOpened ? 'auto' : 'none'
       }}>
-        {/* Spacer to push below fixed hero position on first load */}
-        <div style={{ height: '100vh' }}></div>
         <Profiles config={config} />
         <EventDetails config={config} />
         <Gallery config={config} />
@@ -160,7 +160,18 @@ const RSVPRustic = ({ config }) => {
 
   useEffect(() => {
     const q = query(collection(db, "guestbook"), orderBy("timestamp", "desc"));
-    const unsub = onSnapshot(q, snap => setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const unsub = onSnapshot(q, snap => setMessages(snap.docs.map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        nama: data.nama || data.name || 'Anonim',
+        kehadiran: data.kehadiran || data.attendance || 'Hadir',
+        pesan: data.pesan || data.message || '',
+        date: data.timestamp
+          ? data.timestamp.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+          : 'Baru saja'
+      };
+    })));
     return unsub;
   }, []);
 

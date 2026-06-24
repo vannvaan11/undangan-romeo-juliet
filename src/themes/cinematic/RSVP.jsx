@@ -4,9 +4,10 @@ import { db } from '../../firebase';
 
 const RSVP = () => {
   const sectionRef = useRef(null);
-  const [formData, setFormData] = useState({ name: '', attendance: 'Hadir', message: '' });
+  const [formData, setFormData] = useState({ nama: '', kehadiran: 'Hadir', pesan: '' });
   const [messages, setMessages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -21,15 +22,23 @@ const RSVP = () => {
       },
       { threshold: 0.1 }
     );
-    const elements = sectionRef.current.querySelectorAll('.fade-in, .zoom-in');
-    elements.forEach((el) => observer.observe(el));
 
+    if (sectionRef.current) {
+      const elements = sectionRef.current.querySelectorAll('.fade-in, .zoom-in');
+      elements.forEach((el) => observer.observe(el));
+    }
+
+    // Real-time listener — field names: nama, kehadiran, pesan
     const q = query(collection(db, "guestbook"), orderBy("timestamp", "desc"));
     const unsubscribe = onSnapshot(q, (snap) => {
       const msgs = snap.docs.map(doc => {
         const data = doc.data();
         return {
-          id: doc.id, ...data,
+          id: doc.id,
+          // Support both old field names (name/attendance/message) and new (nama/kehadiran/pesan)
+          nama: data.nama || data.name || 'Anonim',
+          kehadiran: data.kehadiran || data.attendance || 'Hadir',
+          pesan: data.pesan || data.message || '',
           date: data.timestamp
             ? data.timestamp.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
             : 'Baru saja'
@@ -38,21 +47,29 @@ const RSVP = () => {
       setMessages(msgs);
     }, err => console.error("Firebase read error:", err));
 
-    return () => { elements.forEach((el) => observer.unobserve(el)); unsubscribe(); };
+    return () => {
+      if (sectionRef.current) {
+        const elements = sectionRef.current.querySelectorAll('.fade-in, .zoom-in');
+        elements.forEach((el) => observer.unobserve(el));
+      }
+      unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.nama || !formData.pesan) return;
     setIsSubmitting(true);
     try {
       await addDoc(collection(db, "guestbook"), {
-        name: formData.name,
-        attendance: formData.attendance,
-        message: formData.message,
+        nama: formData.nama,
+        kehadiran: formData.kehadiran,
+        pesan: formData.pesan,
         timestamp: serverTimestamp()
       });
-      setFormData({ name: '', attendance: 'Hadir', message: '' });
-      setTimeout(() => alert('Terima kasih atas ucapan dan konfirmasi kehadiran Anda! 🌹'), 100);
+      setFormData({ nama: '', kehadiran: 'Hadir', pesan: '' });
+      setSent(true);
+      setTimeout(() => setSent(false), 3000);
     } catch (error) {
       console.error("Error:", error);
       alert('Gagal mengirim. Periksa konfigurasi Firebase Anda.');
@@ -91,7 +108,7 @@ const RSVP = () => {
 
       <div className="section-title fade-in" style={{ position: 'relative', zIndex: 1 }}>
         <p style={{ fontFamily: 'var(--font-accent)', fontSize: '2rem', color: 'var(--color-accent)' }}>Buku Tamu</p>
-        <h2 style={{ color: 'var(--color-text-light)', fontSize: '2.2rem', letterSpacing: '4px' }}>RSVP & WISHES</h2>
+        <h2 style={{ color: 'var(--color-text-light)', fontSize: '2.2rem', letterSpacing: '4px' }}>RSVP &amp; WISHES</h2>
         <div style={{ width: '50px', height: '1px', backgroundColor: 'var(--color-accent)', margin: '1rem auto' }}></div>
       </div>
 
@@ -104,15 +121,15 @@ const RSVP = () => {
         <form onSubmit={handleSubmit}>
           <input
             type="text" placeholder="Nama Lengkap Anda"
-            required value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            required value={formData.nama}
+            onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
             style={inputStyle}
             onFocus={e => e.target.style.borderColor = 'var(--color-accent)'}
             onBlur={e => e.target.style.borderColor = 'rgba(212,175,55,0.25)'}
           />
           <select
-            value={formData.attendance}
-            onChange={(e) => setFormData({ ...formData, attendance: e.target.value })}
+            value={formData.kehadiran}
+            onChange={(e) => setFormData({ ...formData, kehadiran: e.target.value })}
             style={{ ...inputStyle, cursor: 'pointer' }}
             onFocus={e => e.target.style.borderColor = 'var(--color-accent)'}
             onBlur={e => e.target.style.borderColor = 'rgba(212,175,55,0.25)'}
@@ -123,8 +140,8 @@ const RSVP = () => {
           </select>
           <textarea
             placeholder="Tuliskan doa & ucapan tulus Anda..."
-            required value={formData.message}
-            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+            required value={formData.pesan}
+            onChange={(e) => setFormData({ ...formData, pesan: e.target.value })}
             style={{ ...inputStyle, minHeight: '110px', resize: 'vertical' }}
             onFocus={e => e.target.style.borderColor = 'var(--color-accent)'}
             onBlur={e => e.target.style.borderColor = 'rgba(212,175,55,0.25)'}
@@ -134,7 +151,7 @@ const RSVP = () => {
             disabled={isSubmitting}
             style={{
               width: '100%', padding: '1rem',
-              background: isSubmitting ? 'rgba(212,175,55,0.3)' : 'transparent',
+              background: sent ? 'rgba(212,175,55,0.3)' : isSubmitting ? 'rgba(212,175,55,0.2)' : 'transparent',
               border: '1px solid var(--color-accent)',
               borderRadius: 'var(--radius-full)',
               color: 'var(--color-accent)',
@@ -143,52 +160,58 @@ const RSVP = () => {
               cursor: isSubmitting ? 'not-allowed' : 'pointer',
               transition: 'all 0.4s ease'
             }}
-            onMouseOver={e => { if (!isSubmitting) { e.target.style.background = 'var(--color-accent)'; e.target.style.color = 'var(--color-primary)'; }}}
-            onMouseOut={e => { e.target.style.background = 'transparent'; e.target.style.color = 'var(--color-accent)'; }}
+            onMouseOver={e => { if (!isSubmitting && !sent) { e.currentTarget.style.background = 'var(--color-accent)'; e.currentTarget.style.color = 'var(--color-primary)'; }}}
+            onMouseOut={e => { if (!sent) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-accent)'; }}}
           >
-            {isSubmitting ? 'MENGIRIM...' : 'KIRIM UCAPAN'}
+            {sent ? '✓ TERKIRIM!' : isSubmitting ? 'MENGIRIM...' : 'KIRIM UCAPAN'}
           </button>
         </form>
       </div>
 
       {/* Messages Wall */}
-      {messages.length > 0 && (
-        <div className="fade-in" style={{ position: 'relative', zIndex: 1 }}>
-          <h3 style={{
-            fontSize: '0.8rem', letterSpacing: '4px', color: 'var(--color-accent)',
-            textAlign: 'center', marginBottom: '1.5rem'
-          }}>
-            — UCAPAN & DOA ({messages.length}) —
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
-            {messages.map((msg, i) => {
-              const colors = attendanceColor(msg.attendance);
-              return (
-                <div key={msg.id} style={{
-                  padding: '1.25rem 1.5rem',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(212,175,55,0.15)',
-                  borderRadius: 'var(--radius-sm)',
-                  borderLeft: '2px solid var(--color-accent)',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <strong style={{ color: 'var(--color-text-light)', fontSize: '0.9rem' }}>{msg.name}</strong>
-                    <span style={{
-                      fontSize: '0.65rem', padding: '2px 10px',
-                      borderRadius: '20px', background: colors.bg, color: colors.text,
-                      letterSpacing: '1px'
-                    }}>
-                      {msg.attendance.toUpperCase()}
-                    </span>
+      <div className="fade-in" style={{ position: 'relative', zIndex: 1 }}>
+        {messages.length === 0 ? (
+          <p style={{ textAlign: 'center', color: 'rgba(212,175,55,0.4)', fontSize: '0.85rem', letterSpacing: '2px', padding: '2rem 0' }}>
+            — Belum ada ucapan. Jadilah yang pertama! —
+          </p>
+        ) : (
+          <>
+            <h3 style={{
+              fontSize: '0.8rem', letterSpacing: '4px', color: 'var(--color-accent)',
+              textAlign: 'center', marginBottom: '1.5rem'
+            }}>
+              — UCAPAN &amp; DOA ({messages.length}) —
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
+              {messages.map((msg) => {
+                const colors = attendanceColor(msg.kehadiran);
+                return (
+                  <div key={msg.id} style={{
+                    padding: '1.25rem 1.5rem',
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(212,175,55,0.15)',
+                    borderRadius: 'var(--radius-sm)',
+                    borderLeft: '2px solid var(--color-accent)',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <strong style={{ color: 'var(--color-text-light)', fontSize: '0.9rem' }}>{msg.nama}</strong>
+                      <span style={{
+                        fontSize: '0.65rem', padding: '2px 10px',
+                        borderRadius: '20px', background: colors.bg, color: colors.text,
+                        letterSpacing: '1px'
+                      }}>
+                        {msg.kehadiran.toUpperCase()}
+                      </span>
+                    </div>
+                    <p style={{ color: 'rgba(253,253,253,0.65)', fontSize: '0.875rem', lineHeight: '1.7', fontStyle: 'italic' }}>"{msg.pesan}"</p>
+                    <span style={{ fontSize: '0.7rem', color: 'rgba(212,175,55,0.5)', marginTop: '0.75rem', display: 'block' }}>{msg.date}</span>
                   </div>
-                  <p style={{ color: 'rgba(253,253,253,0.65)', fontSize: '0.875rem', lineHeight: '1.7', fontStyle: 'italic' }}>"{msg.message}"</p>
-                  <span style={{ fontSize: '0.7rem', color: 'rgba(212,175,55,0.5)', marginTop: '0.75rem', display: 'block' }}>{msg.date}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
     </section>
   );
 };

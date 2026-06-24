@@ -54,12 +54,12 @@ const EditorialTheme = ({ config, isOpened, onOpen }) => {
       <div style={{
         display: 'flex',
         flexDirection: 'column',
+        minHeight: '100vh',
+        paddingTop: isOpened ? '0' : '100vh',
         opacity: isOpened ? 1 : 0,
-        animation: isOpened ? 'fadeIn 1s 0.8s both' : 'none',
+        transition: 'opacity 0.8s ease 0.6s',
         pointerEvents: isOpened ? 'auto' : 'none'
       }}>
-        {/* Spacer behind hero */}
-        <div style={{ height: '100vh' }}></div>
 
         {/* Main scrollable body — editorial style */}
         <div style={{ maxWidth: '900px', margin: '0 auto', padding: '5rem 3rem', width: '100%' }}>
@@ -180,7 +180,18 @@ const RSVPEditorial = ({ config }) => {
 
   useEffect(() => {
     const q = query(collection(db, "guestbook"), orderBy("timestamp", "desc"));
-    const unsub = onSnapshot(q, snap => setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const unsub = onSnapshot(q, snap => setMessages(snap.docs.map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        nama: data.nama || data.name || 'Anonim',
+        kehadiran: data.kehadiran || data.attendance || 'Hadir',
+        pesan: data.pesan || data.message || '',
+        date: data.timestamp
+          ? data.timestamp.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+          : 'Baru saja'
+      };
+    })));
     return unsub;
   }, []);
 

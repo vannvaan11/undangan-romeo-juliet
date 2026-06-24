@@ -42,6 +42,17 @@ function App() {
     document.body.style.backgroundColor = config.tema.bgBody;
   }, [config]);
 
+  // Reset isOpened when theme layout changes
+  const prevLayoutRef = useRef(config.layout);
+  useEffect(() => {
+    if (prevLayoutRef.current !== config.layout) {
+      prevLayoutRef.current = config.layout;
+      setIsOpened(false);
+      setIsPlaying(false);
+      document.body.style.overflowY = 'hidden';
+    }
+  }, [config.layout]);
+
   const cursorRef = useRef(null);
 
   useEffect(() => {
