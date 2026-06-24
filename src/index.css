@@ -133,12 +133,13 @@ button {
   position: relative;
   min-height: 100vh;
   /* Use the generated gold texture overlay mixed with dark background */
-  background-image: linear-gradient(to bottom, rgba(26, 38, 57, 0.8), rgba(26, 38, 57, 0.95)), url('/assets/gold_texture.png');
+  background-image: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('/assets/gold_texture.png');
+  background-color: var(--color-primary);
   background-attachment: fixed;
   background-size: cover;
   background-position: center;
   box-shadow: 0 0 40px rgba(0,0,0,0.5);
-  overflow: hidden;
+  /* overflow: hidden removed so it can scroll */
 }
 
 .section-padding {
