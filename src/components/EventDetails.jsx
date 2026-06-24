@@ -37,7 +37,7 @@ const EventDetails = ({ config }) => {
 
   const renderEvent = (event) => (
     <div className="fade-in glass-panel" style={{ padding: '3rem 2rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', backgroundImage: `url('/assets/dark_floral.png')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', opacity: 0.15, pointerEvents: 'none' }}></div>
+      <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', backgroundImage: `url('/assets/dark_floral.png')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', opacity: 0.15, pointerEvents: 'none', mixBlendMode: 'screen' }}></div>
       <p className="font-accent" style={{ fontSize: '2.5rem', color: 'var(--color-accent)', marginBottom: '0.5rem', lineHeight: '1' }}>{event.subjudul}</p>
       <h3 style={{ fontSize: '2rem', color: 'var(--color-text-light)', marginBottom: '1rem', letterSpacing: '2px' }}>{event.judul}</h3>
       <p style={{ fontWeight: 'bold', marginBottom: '0.5rem', letterSpacing: '1px' }}>{event.tanggal}</p>

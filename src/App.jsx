@@ -116,7 +116,7 @@ function App() {
                 width: '250px', height: '250px',
                 backgroundImage: `url('/assets/dark_floral.png')`,
                 backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center',
-                opacity: 0.12, pointerEvents: 'none'
+                opacity: 0.12, pointerEvents: 'none', mixBlendMode: 'screen'
               }}></div>
 
               <div style={{ width: '1px', height: '60px', background: 'linear-gradient(to bottom, transparent, var(--color-accent))', margin: '0 auto 2rem' }}></div>

@@ -47,7 +47,7 @@ const Profiles = ({ config }) => {
           position: 'absolute', top: '20%', left: '-20%', width: '300px', height: '300px',
           backgroundImage: `url('/assets/dark_floral.png')`,
           backgroundSize: 'contain', backgroundRepeat: 'no-repeat',
-          opacity: 0.1, zIndex: 0, pointerEvents: 'none'
+          opacity: 0.1, zIndex: 0, pointerEvents: 'none', mixBlendMode: 'screen'
         }}></div>
 
         {renderProfile(groom)}

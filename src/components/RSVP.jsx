@@ -86,7 +86,7 @@ const RSVP = () => {
         position: 'absolute', bottom: '-20px', left: '-30px', width: '200px', height: '200px',
         backgroundImage: `url('/assets/dark_floral.png')`,
         backgroundSize: 'contain', backgroundRepeat: 'no-repeat',
-        opacity: 0.1, pointerEvents: 'none', zIndex: 0, transform: 'rotate(180deg) scaleX(-1)'
+        opacity: 0.1, pointerEvents: 'none', zIndex: 0, transform: 'rotate(180deg) scaleX(-1)', mixBlendMode: 'screen'
       }}></div>
 
       <div className="section-title fade-in" style={{ position: 'relative', zIndex: 1 }}>

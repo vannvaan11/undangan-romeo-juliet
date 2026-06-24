@@ -31,7 +31,7 @@ const DigitalEnvelope = ({ config }) => {
         position: 'absolute', top: '-30px', right: '-30px', width: '180px', height: '180px',
         backgroundImage: `url('/assets/dark_floral.png')`,
         backgroundSize: 'contain', backgroundRepeat: 'no-repeat',
-        opacity: 0.12, pointerEvents: 'none', zIndex: 0
+        opacity: 0.12, pointerEvents: 'none', zIndex: 0, mixBlendMode: 'screen'
       }}></div>
 
       <div className="section-title fade-in" style={{ position: 'relative', zIndex: 1 }}>
