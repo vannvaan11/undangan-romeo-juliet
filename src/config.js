@@ -11,6 +11,12 @@
 const CONFIG = {
 
   // ┌─────────────────────────────────────┐
+  // │         TEMA / LAYOUT UTAMA         │
+  // └─────────────────────────────────────┘
+  // Pilihan: "cinematic", "minimalist", "rustic", "editorial", "royal"
+  layout: "cinematic",
+
+  // ┌─────────────────────────────────────┐
   // │         DATA MEMPELAI PRIA          │
   // └─────────────────────────────────────┘
   groom: {

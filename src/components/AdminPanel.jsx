@@ -322,7 +322,39 @@ const AdminPanel = ({ onClose }) => {
 
         {/* ── TAB: TEMA ── */}
         {activeTab === 'tema' && (
-          <Section title="WARNA TEMA">
+          <>
+            <Section title="LAYOUT TEMA UTAMA">
+              <p style={{ fontSize: '0.75rem', color: 'rgba(253,253,253,0.4)', marginBottom: '1rem', lineHeight: '1.8' }}>
+                Pilih gaya desain undangan. Setiap layout memiliki susunan elemen dan bentuk yang sangat berbeda.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                {[
+                  { id: 'cinematic', name: '🎬 Cinematic Arch', desc: 'Gelap, mewah, arch kaca' },
+                  { id: 'minimalist', name: '🍃 Minimalist Elegance', desc: 'Bersih, putih, kotak tajam' },
+                  { id: 'rustic', name: '🌿 Rustic Botanical', desc: 'Hangat, daun watercolor' },
+                  { id: 'editorial', name: '📸 Modern Editorial', desc: 'Vogue split-screen layout' },
+                  { id: 'royal', name: '👑 Classic Royal', desc: 'Simetris, bingkai klasik emas' }
+                ].map(l => (
+                  <div 
+                    key={l.id} 
+                    onClick={() => update('layout', l.id)}
+                    style={{ 
+                      padding: '1rem', 
+                      background: config.layout === l.id ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.03)', 
+                      border: config.layout === l.id ? '1px solid #D4AF37' : '1px solid rgba(255,255,255,0.1)', 
+                      borderRadius: '8px', 
+                      cursor: 'pointer',
+                      transition: 'all 0.3s'
+                    }}
+                  >
+                    <p style={{ margin: 0, fontWeight: 'bold', color: config.layout === l.id ? '#D4AF37' : '#fff', fontSize: '0.9rem' }}>{l.name}</p>
+                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.7rem', color: 'rgba(253,253,253,0.5)' }}>{l.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </Section>
+
+            <Section title="WARNA TEMA">
             <p style={{ fontSize: '0.75rem', color: 'rgba(253,253,253,0.4)', marginBottom: '1rem', lineHeight: '1.8' }}>
               Sesuaikan warna dengan tema baju prewedding klien. Klik kotak warna atau ketik kode HEX.
             </p>
@@ -342,6 +374,7 @@ const AdminPanel = ({ onClose }) => {
               <p style={{ color: config.tema.secondary, fontSize: '0.8rem' }}>Teks sekunder terlihat seperti ini</p>
             </div>
           </Section>
+          </>
         )}
 
         {/* ── TAB: LAINNYA ── */}
