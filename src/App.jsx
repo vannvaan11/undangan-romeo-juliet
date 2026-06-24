@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import MusicPlayer from './components/MusicPlayer';
 import AdminPanel, { getConfig } from './components/AdminPanel';
 import './index.css';
@@ -42,6 +42,35 @@ function App() {
     document.body.style.backgroundColor = config.tema.bgBody;
   }, [config]);
 
+  const cursorRef = useRef(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (cursorRef.current) {
+        cursorRef.current.style.left = e.clientX + 'px';
+        cursorRef.current.style.top = e.clientY + 'px';
+      }
+    };
+    const handleMouseOver = (e) => {
+      if (e.target.tagName?.toLowerCase() === 'button' || e.target.tagName?.toLowerCase() === 'a' || e.target.closest?.('button') || e.target.closest?.('a')) {
+        cursorRef.current?.classList.add('hovering');
+      }
+    };
+    const handleMouseOut = () => {
+      cursorRef.current?.classList.remove('hovering');
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseover', handleMouseOver);
+    document.addEventListener('mouseout', handleMouseOut);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseover', handleMouseOver);
+      document.removeEventListener('mouseout', handleMouseOut);
+    }
+  }, []);
+
   const togglePlay = () => setIsPlaying(!isPlaying);
 
   const handleCloseAdmin = () => {
@@ -80,6 +109,7 @@ function App() {
 
   return (
     <>
+      <div ref={cursorRef} className="custom-cursor"></div>
       <div className="container">
         <Suspense fallback={<div style={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-accent)'}}>Memuat Undangan...</div>}>
           {renderTheme()}
