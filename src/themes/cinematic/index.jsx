@@ -9,7 +9,7 @@ import AmbientBackground from '../../components/AmbientBackground';
 
 const CinematicTheme = ({ config, isOpened, onOpen }) => {
   return (
-    <div className="theme-cinematic">
+    <div className="container theme-cinematic">
       {isOpened && <AmbientBackground />}
       <Hero config={config} onOpen={onOpen} />
 

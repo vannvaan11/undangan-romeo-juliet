@@ -294,6 +294,11 @@ button {
   }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* COMPONENTS */
 .section-title {
   text-align: center;

@@ -110,7 +110,7 @@ function App() {
   return (
     <>
       <div ref={cursorRef} className="custom-cursor"></div>
-      <div className="container">
+      <div style={{ width: '100%', minHeight: '100vh' }}>
         <Suspense fallback={<div style={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-accent)'}}>Memuat Undangan...</div>}>
           {renderTheme()}
         </Suspense>
