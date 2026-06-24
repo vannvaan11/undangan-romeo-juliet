@@ -355,25 +355,42 @@ const AdminPanel = ({ onClose }) => {
             </Section>
 
             <Section title="WARNA TEMA">
-            <p style={{ fontSize: '0.75rem', color: 'rgba(253,253,253,0.4)', marginBottom: '1rem', lineHeight: '1.8' }}>
-              Sesuaikan warna dengan tema baju prewedding klien. Klik kotak warna atau ketik kode HEX.
-            </p>
-            <Field label="Warna Utama (Latar Gelap)" value={config.tema.primary} onChange={v => update('tema.primary', v)} type="color" />
-            <Field label="Warna Utama Terang" value={config.tema.primaryLight} onChange={v => update('tema.primaryLight', v)} type="color" />
-            <Field label="Warna Sekunder (Champagne)" value={config.tema.secondary} onChange={v => update('tema.secondary', v)} type="color" />
-            <Field label="Warna Aksen (Emas/Gold)" value={config.tema.accent} onChange={v => update('tema.accent', v)} type="color" />
-            <Field label="Warna Teks Terang" value={config.tema.textLight} onChange={v => update('tema.textLight', v)} type="color" />
-            <Field label="Warna Teks Redup" value={config.tema.textMuted} onChange={v => update('tema.textMuted', v)} type="color" />
-            <Field label="Warna Latar Body" value={config.tema.bgBody} onChange={v => update('tema.bgBody', v)} type="color" />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
+                <p style={{ fontSize: '0.75rem', color: 'rgba(253,253,253,0.4)', margin: 0, lineHeight: '1.8', flex: 1 }}>
+                  Sesuaikan warna dengan tema baju prewedding klien. Klik kotak warna atau ketik kode HEX.
+                </p>
+                <button
+                  onClick={() => {
+                    if (window.confirm('Kembalikan Layout dan Warna ke settingan bawaan tema ini?')) {
+                      setConfig(prev => ({
+                        ...prev,
+                        layout: CONFIG.layout,
+                        tema: { ...CONFIG.tema }
+                      }));
+                      setSaved(false);
+                    }
+                  }}
+                  style={{ background: 'rgba(212,175,55,0.15)', border: '1px solid rgba(212,175,55,0.4)', color: '#D4AF37', padding: '0.4rem 0.8rem', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.3s', fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  ↺ Undo Tema
+                </button>
+              </div>
+              <Field label="Warna Utama (Latar Gelap)" value={config.tema.primary} onChange={v => update('tema.primary', v)} type="color" />
+              <Field label="Warna Utama Terang" value={config.tema.primaryLight} onChange={v => update('tema.primaryLight', v)} type="color" />
+              <Field label="Warna Sekunder (Champagne)" value={config.tema.secondary} onChange={v => update('tema.secondary', v)} type="color" />
+              <Field label="Warna Aksen (Emas/Gold)" value={config.tema.accent} onChange={v => update('tema.accent', v)} type="color" />
+              <Field label="Warna Teks Terang" value={config.tema.textLight} onChange={v => update('tema.textLight', v)} type="color" />
+              <Field label="Warna Teks Redup" value={config.tema.textMuted} onChange={v => update('tema.textMuted', v)} type="color" />
+              <Field label="Warna Latar Body" value={config.tema.bgBody} onChange={v => update('tema.bgBody', v)} type="color" />
 
-            {/* Preview */}
-            <div style={{ marginTop: '1.5rem', padding: '1.5rem', borderRadius: '12px', background: config.tema.primary, border: `1px solid ${config.tema.accent}30`, textAlign: 'center' }}>
-              <p style={{ fontFamily: "'Great Vibes', cursive", fontSize: '1.5rem', color: config.tema.accent }}>Preview Tema</p>
-              <h3 style={{ fontFamily: "'Cinzel', serif", color: config.tema.textLight, fontSize: '1.5rem', letterSpacing: '3px' }}>{config.groom.namaPanggilan} & {config.bride.namaPanggilan}</h3>
-              <p style={{ color: config.tema.textMuted, fontSize: '0.8rem' }}>Teks biasa terlihat seperti ini</p>
-              <p style={{ color: config.tema.secondary, fontSize: '0.8rem' }}>Teks sekunder terlihat seperti ini</p>
-            </div>
-          </Section>
+              {/* Preview */}
+              <div style={{ marginTop: '1.5rem', padding: '1.5rem', borderRadius: '12px', background: config.tema.primary, border: `1px solid ${config.tema.accent}30`, textAlign: 'center' }}>
+                <p style={{ fontFamily: "'Great Vibes', cursive", fontSize: '1.5rem', color: config.tema.accent }}>Preview Tema</p>
+                <h3 style={{ fontFamily: "'Cinzel', serif", color: config.tema.textLight, fontSize: '1.5rem', letterSpacing: '3px' }}>{config.groom.namaPanggilan} &amp; {config.bride.namaPanggilan}</h3>
+                <p style={{ color: config.tema.textMuted, fontSize: '0.8rem' }}>Teks biasa terlihat seperti ini</p>
+                <p style={{ color: config.tema.secondary, fontSize: '0.8rem' }}>Teks sekunder terlihat seperti ini</p>
+              </div>
+            </Section>
           </>
         )}
 
